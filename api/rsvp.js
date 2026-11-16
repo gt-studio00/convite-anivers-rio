@@ -16,11 +16,7 @@ module.exports = async (req, res) => {
       const name = String(b.name || "").trim().slice(0, 80);
       if (!name) return res.status(400).json({ error: "name" });
       const going = !!b.going;
-      const people = going ? Math.max(1, Math.min(12, parseInt(b.people) || 1)) : 0;
-      const companions = going && Array.isArray(b.companions)
-        ? b.companions.slice(0, 11).map((x) => String(x).trim().slice(0, 80)).filter(Boolean)
-        : [];
-      await redis(["HSET", "rsvps", id, JSON.stringify({ name, going, people, companions, at: Date.now() })]);
+      await redis(["HSET", "rsvps", id, JSON.stringify({ name, going, at: Date.now() })]);
       return res.json({ ok: true });
     }
     res.status(405).end();
