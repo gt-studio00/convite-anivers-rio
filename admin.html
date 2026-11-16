@@ -101,7 +101,7 @@ body.adm .hearts{display:none}
 </style>
 </head><body><main><section class="card admin" id="admin">
 <h3>PAINEL DE CONFIRMAÇÕES</h3><p class="only">SÓ VOCÊ VÊ ESTA ÁREA</p>
-<div class="stats"><div class="stat"><b id="sy">0</b><span>VÃO</span></div><div class="stat"><b id="sn">0</b><span>NÃO VÃO</span></div><div class="stat"><b id="sr">0</b><span>RESPOSTAS</span></div></div>
+<div class="stats"><div class="stat"><b id="sy">0</b><span>PESSOAS VÃO</span></div><div class="stat"><b id="sn">0</b><span>NÃO VÃO</span></div><div class="stat"><b id="sr">0</b><span>RESPOSTAS</span></div></div>
 <h4 class="lh">QUEM VAI</h4><ul class="list" id="lyes"></ul>
 <h4 class="lh">QUEM NÃO VAI</h4><ul class="list" id="lno"></ul>
 </section></main>
@@ -112,6 +112,7 @@ function mk(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null
 function api(m,q){return fetch("/api/admin"+(q||""),{method:m,headers:{"x-admin-key":KEY}})}
 function mkli(r){
   var n=mk("div","n",r.name||"Sem nome");
+  if(r.going){var p=r.people||1;n.appendChild(mk("small",null,p+(p>1?" pessoas":" pessoa")+(r.companions&&r.companions.length?", com "+r.companions.join(", "):"")))}
   var l=mk("li"),x=mk("button","del","🗑");x.type="button";
   x.onclick=function(){if(confirm("Remover a resposta de "+(r.name||"este convidado")+"?"))api("DELETE","?id="+encodeURIComponent(r.id)).then(load)};
   l.appendChild(n);l.appendChild(x);return l;
@@ -119,7 +120,7 @@ function mkli(r){
 function fill(ul,rs,t){ul.textContent="";if(!rs.length){var e=mk("li","empty",t);e.style.border="0";ul.appendChild(e);return}rs.forEach(function(r){ul.appendChild(mkli(r))})}
 function render(rows){
   var y=rows.filter(function(r){return r.going}),n=rows.filter(function(r){return !r.going}),t=0;
-  t=y.length;
+  y.forEach(function(r){t+=r.people||1});
   $("#sy").textContent=t;$("#sn").textContent=n.length;$("#sr").textContent=rows.length;
   fill($("#lyes"),y,"Ninguém confirmou ainda.");fill($("#lno"),n,"Ninguém recusou ainda.");
 }

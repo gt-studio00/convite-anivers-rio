@@ -152,6 +152,11 @@ body.adm .hearts{display:none}
 <button type="button" id="yes" aria-pressed="false">VOU</button>
 <button type="button" id="no" aria-pressed="false">NÃO VOU</button>
 </div>
+<div class="comp" id="comp">
+<label class="f">QUANTAS PESSOAS VÃO, CONTANDO COM VOCÊ?</label>
+<div class="step"><button type="button" id="minus" aria-label="Menos uma pessoa">−</button><div class="cnt"><b id="cn">1</b><span id="ct">SÓ VOCÊ</span></div><button type="button" id="plus" aria-label="Mais uma pessoa">+</button></div>
+<div id="cl"></div>
+</div>
 <button type="button" class="go" id="send">CONFIRMAR PRESENÇA</button>
 <p class="msg" id="msg" role="status"></p>
 </div>
@@ -174,10 +179,31 @@ function setGoing(v){
   going=v;
   $("#yes").setAttribute("aria-pressed",v===true);
   $("#no").setAttribute("aria-pressed",v===false);
+  $("#comp").classList.toggle("open",v===true);
 }
 $("#yes").onclick=function(){setGoing(true)};
 $("#no").onclick=function(){setGoing(false)};
 
+var people=1;
+function setPeople(n,names){
+  var box=$("#cl");
+  people=Math.max(1,Math.min(12,n));
+  $("#cn").textContent=people;
+  $("#ct").textContent=people===1?"SÓ VOCÊ":people+" PESSOAS";
+  while(box.children.length>people-1)box.lastChild.remove();
+  while(box.children.length<people-1){
+    var i=mk("input");i.type="text";i.maxLength=80;
+    i.placeholder="Nome da pessoa "+(box.children.length+2)+" (opcional)";
+    i.value=(names&&names[box.children.length])||"";
+    box.appendChild(i);
+  }
+}
+$("#plus").onclick=function(){setPeople(people+1)};
+$("#minus").onclick=function(){setPeople(people-1)};
+
+function comps(){
+  return Array.prototype.map.call($("#cl").querySelectorAll("input"),function(i){return i.value.trim()}).filter(Boolean);
+}
 
 function hearts(){
   var w=mk("div","hearts");
@@ -198,7 +224,8 @@ function showDone(d,celebrate){
   $("#done").classList.add("show");
   if(d.going){
     $("#dbig").textContent="Que alegria!";
-    $("#dtxt").textContent=d.name+", sua presença está confirmada. Mal posso esperar para celebrar com você!";
+    var n=(d.people||1)-1;
+    $("#dtxt").textContent=d.name+", sua presença está confirmada"+(n?" com mais "+n+(n>1?" pessoas":" pessoa"):"")+". Mal posso esperar para celebrar com você!";
     if(celebrate)hearts();
   }else{
     $("#dbig").textContent="Obrigada por avisar";
@@ -211,6 +238,8 @@ $("#edit").onclick=function(){
   $("#form").style.display="";
   if(saved){
     $("#nome").value=saved.name;
+    $("#cl").textContent="";
+    setPeople(saved.people||1,saved.companions);
     setGoing(saved.going);
   }
 };
@@ -220,7 +249,7 @@ $("#send").onclick=function(){
   msg.textContent="";
   if(!name){msg.textContent="Escreva seu nome para confirmar.";$("#nome").focus();return}
   if(going===null){msg.textContent="Escolha entre “Vou” e “Não vou”.";return}
-  var d={id:uid,name:name,going:going};
+  var d={id:uid,name:name,going:going,people:going?people:0,companions:going?comps():[]};
   btn.disabled=true;
   fetch("/api/rsvp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)})
     .then(function(r){if(!r.ok)throw 0;return r.json()})
