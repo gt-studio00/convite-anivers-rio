@@ -25,6 +25,6 @@ module.exports = async (req, res) => {
     }
     res.status(405).end();
   } catch (e) {
-    res.status(500).json({ error: "server" });
+    res.status(500).json({ error: "server", detail: String(e.message || e).slice(0, 120) });
   }
 };

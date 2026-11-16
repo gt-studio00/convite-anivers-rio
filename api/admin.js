@@ -18,6 +18,6 @@ module.exports = async (req, res) => {
     rows.sort((x, y) => (y.at || 0) - (x.at || 0));
     res.json({ rows });
   } catch (e) {
-    res.status(500).json({ error: "server" });
+    res.status(500).json({ error: "server", detail: String(e.message || e).slice(0, 120) });
   }
 };
